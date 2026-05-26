@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>진짜 완벽하게 작동하는 32강 디저트 월드컵</title>
+
+    <style>
+
+        body {
+
+            font-family: sans-serif;
+
+            background-color: #fff0f5;
+
+            margin: 0;
+
+            padding: 20px;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            height: 100vh;
+
+            user-select: none; /* 드래그 방지 */
+
+        }
+
+        #game-container {
+
+            text-align: center;
+
+            width: 100%;
+
+            max-width: 500px;
+
+            background: white;
+
+            padding: 20px;
+
+            border-radius: 20px;
+
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+
+        }
+
+        h1 { color: #ff6b81; font-size: 1.5rem; margin: 0 0 15px 0; }
+
+        .round-info {
+
+            font-size: 1rem; font-weight: bold; color: white;
+
+            background: #ff6b81; padding: 6px 15px;
+
+            border-radius: 15px; display: inline-block; margin-bottom: 20px;
+
+        }
+
+        .vs-container {
+
+            display: flex; gap: 15px; justify-content: center; align-items: center;
+
+        }
+
+        /* 클릭할 카드 스타일 (HTML 속성 대신 클래스로만 구별) */
+
+        .dessert-card {
+
+            flex: 1; 
+
+            border: 4px solid #ffe4e1; 
+
+            border-radius: 15px; 
+
+            overflow: hidden;
+
+            cursor: pointer; 
+
+            max-width: 180px; 
+
+            background: #eee;
+
+            transition: transform 0.1s;
+
+        }
+
+        .dessert-card:hover { border-color: #ff6b81; }
+
+        .dessert-card:active { transform: scale(0.95); }
+
+        /* 내부 요소들이 클릭 신호를 방해하지 않도록 완전 차단 */
+
+        .img-box, .name {
+
+            pointer-events: none; 
+
+        }
+
+        .img-box {
+
+            width: 100%; height: 120px; display: flex;
+
+            align-items: center; justify-content: center;
+
+            color: white; font-size: 3rem;
+
+        }
+
+        .name {
+
+            padding: 10px 5px; font-size: 1rem; font-weight: bold;
+
+            background: white; color: #333; border-top: 2px solid #ffe4e1;
+
+            display: block;
+
+        }
+
+        .vs-badge { font-size: 1.2rem; font-weight: bold; color: #ff6b81; }
+
+        /* 다시하기 버튼전용 클래스 */
+
+        .btn-restart {
+
+            background: #ff6b81; color: white; border: none;
+
+            padding: 12px 25px; font-size: 1.1rem; font-weight: bold;
+
+            border-radius: 30px; cursor: pointer; margin-top: 15px;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div id="game-container">
+
+        <h1>🏆 디저트 32강 월드컵 🏆</h1>
+
+        <div id="main-stage"></div>
+
+    </div>
+
+    <script>
+
+        // 디저트 32가지 완벽 데이터
+
+        var items = [
+
+            { name: "초코 케이크", color: "#4A2C2A", emoji: "🎂" }, 
+
+            { name: "딸기 빙수", color: "#FF8DA1", emoji: "🍧" },
+
+            { name: "마카롱", color: "#E8A7A1", emoji: "🧁" },
+
+            { name: "크로플", color: "#C68E5A", emoji: "🧇" },
+
+            { name: "푸딩", color: "#FFD043", emoji: "🍮" },
+
+            { name: "블루베리 타르트", color: "#464175", emoji: "🥧" },
+
+            { name: "츄러스", color: "#9E6F45", emoji: "🥖" },
+
+            { name: "탕후루", color: "#E60024", emoji: "🍓" },
+
+            { name: "도넛", color: "#FFA6C9", emoji: "🍩" },
+
+            { name: "소프트 아이스크림", color: "#Fcebb6", emoji: "🍦" },
+
+            { name: "치즈 케이크", color: "#FFE894", emoji: "🧀" },
+
+            { name: "티라미수", color: "#5C3A21", emoji: "☕" },
+
+            { name: "약과", color: "#A05A2C", emoji: "🍪" },
+
+            { name: "붕어빵", color: "#EAA15F", emoji: "🐟" },
+
+            { name: "에그 타르트", color: "#FFAF00", emoji: "🥚" },
+
+            { name: "솜사탕", color: "#FFC5E3", emoji: "☁️" },
+
+            { name: "와플", color: "#D2904C", emoji: "🧇" },
+
+            { name: "호떡", color: "#B0743B", emoji: "🥞" },
+
+            { name: "팬케이크", color: "#E09F53", emoji: "🥞" },
+
+            { name: "슈크림", color: "#FFF3B3", emoji: "🧁" },
+
+            { name: "브라우니", color: "#381E11", emoji: "🍫" },
+
+            { name: "젤리 빈", color: "#FF4D94", emoji: "🍬" },
+
+            { name: "크로아상", color: "#C99253", emoji: "🥐" },
+
+            { name: "모찌", color: "#EAEAEA", emoji: "🍡" },
+
+            { name: "레몬 에이드", color: "#FFF033", emoji: "🍹" },
+
+            { name: "녹차 아이스크림", color: "#77A667", emoji: "🍵" },
+
+            { name: "컵케이크", color: "#FFB0C1", emoji: "🧁" },
+
+            { name: "팝콘", color: "#FFF6BD", emoji: "🍿" }, 
+
+            { name: "밀크쉐이크", color: "#FAEDCD", emoji: "🥤" },
+
+            { name: "과일 꼬치", color: "#FF5722", emoji: "🍡" },
+
+            { name: "초코 퐁듀", color: "#2E1A11", emoji: "🫕" },
+
+            { name: "카스텔라", color: "#FFD966", emoji: "🍞" }
+
+        ];
+
+        var currentItems = [];
+
+        var nextRound = [];
+
+        var step = 0;
+
+        function init() {
+
+            currentItems = [];
+
+            for (var i = 0; i < items.length; i++) {
+
+                currentItems.push(items[i]);
+
+            }
+
+            currentItems.sort(function() { return 0.5 - Math.random(); });
+
+            step = 0;
+
+            nextRound = [];
+
+            render();
+
+        }
+
+        // HTML 화면을 깔아주는 함수 (onclick 속성이 완벽히 제거됨!)
+
+        function render() {
+
+            var stage = document.getElementById('main-stage');
+
+            if (currentItems.length === 1) {
+
+                var winner = currentItems[0];
+
+                stage.innerHTML = `
+
+                    <h2 style="color: #ff6b81; margin-bottom: 15px;">👑 우승 디저트! 👑</h2>
+
+                    <div class="dessert-card" style="margin: 0 auto; width: 180px; cursor: default; border-color: gold;">
+
+                        <div class="img-box" style="background-color: ${winner.color}">${winner.emoji}</div>
+
+                        <div class="name">${winner.name}</div>
+
+                    </div>
+
+                    <p><button class="btn-restart">다시 하기 🔄</button></p>
+
+                `;
+
+                return;
+
+            }
+
+            var roundNum = currentItems.length;
+
+            var matchIndex = Math.floor(step / 2) + 1;
+
+            var roundText = (roundNum === 2 ? '결승전' : roundNum + '강') + ' (' + matchIndex + '/' + (roundNum/2) + ')';
+
+            var item0 = currentItems[step];
+
+            var item1 = currentItems[step + 1];
+
+            // 데이터 식별용 id인 data-idx 속성만 부여함
+
+            stage.innerHTML = `
+
+                <div class="round-info">${roundText}</div>
+
+                <div class="vs-container">
+
+                    <div class="dessert-card" data-idx="0">
+
+                        <div class="img-box" style="background-color: ${item0.color}">${item0.emoji}</div>
+
+                        <div class="name">${item0.name}</div>
+
+                    </div>
+
+                    <div class="vs-badge">VS</div>
+
+                    <div class="dessert-card" data-idx="1">
+
+                        <div class="img-box" style="background-color: ${item1.color}">${item1.emoji}</div>
+
+                        <div class="name">${item1.name}</div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+
+        // [구원투수] 플랫폼의 방해를 우회하여 클릭을 감지하는 초강력 통합 감시 시스템
+
+        document.addEventListener('click', function(e) {
+
+            var target = e.target;
+
+            
+
+            // 1. 디저트 카드를 클릭했는지 확인
+
+            if (target && target.classList.contains('dessert-card')) {
+
+                var idx = parseInt(target.getAttribute('data-idx'), 10);
+
+                
+
+                // 결승전 종료 후 우승 카드는 클릭되지 않게 차단
+
+                if (currentItems.length === 1) return;
+
+                nextRound.push(currentItems[step + idx]);
+
+                step = step + 2;
+
+                if (step >= currentItems.length) {
+
+                    currentItems = [];
+
+                    for (var j = 0; j < nextRound.length; j++) {
+
+                        currentItems.push(nextRound[j]);
+
+                    }
+
+                    nextRound = [];
+
+                    step = 0;
+
+                }
+
+                render();
+
+            }
+
+            
+
+            // 2. 다시하기 버튼을 클릭했는지 확인
+
+            if (target && target.classList.contains('btn-restart')) {
+
+                location.reload();
+
+            }
+
+        });
+
+        // 페이지 로드 즉시 실행
+
+        init();
+
+    </script>
+
+</body>
+
+</html>
